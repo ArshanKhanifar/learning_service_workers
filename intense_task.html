@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buttons</title>
+</head>
+<body>
+
+<button onclick="calculateNthPrimeInMain()">Calculate In Main</button>
+<output id="calculateMain"></output>
+<br>
+<button onclick="calculateNthPrimeInWorker()">Calculate In Worker</button>
+<output id="calculateWorker"></output>
+
+<p id="changingText"></p>
+<script>
+  function nthprime(n) {
+    var prime=[], i=1;
+    while (i++ && prime.length<n-1) prime.reduce((a,c)=>(i%c)*a,1) && prime.push(i);
+    return prime.length?prime.pop():1;
+  }
+
+  function changeText() {
+    changingText.textContent = "hello " + Math.floor(Math.random() * 100);
+    setTimeout(changeText, 100);
+  }
+  changeText();
+
+  function calculateNthPrimeInMain() {
+    let begin = Date.now();
+    let num = nthprime(7000);
+    let end = Date.now();
+    calculateMain.textContent = "num: " + num + ", took: " + (end - begin);
+  }
+  let worker = new Worker('intense_task.js');
+  worker.addEventListener('message', function(e) {
+    calculateWorker.textContent = "num: " + e.data.num + ", took: " + (Date.now() - e.data.begin);
+  }, false);
+
+  function calculateNthPrimeInWorker() {
+    let begin = Date.now();
+    worker.postMessage({begin: begin});
+  }
+
+</script>
+
+</body>
+</html>

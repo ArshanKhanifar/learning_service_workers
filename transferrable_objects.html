@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Buttons</title>
+</head>
+<body>
+
+<button onclick="sendLotsOfData()">Send Lots of Data Normally</button>
+<output id="resultNormally"></output>
+<br>
+<button onclick="sendTransferable()">Send Transferrable</button>
+<output id="resultTransferable"></output>
+
+<p id="changingText"></p>
+<script>
+    function changeText() {
+      changingText.textContent = "hello " + Math.floor(Math.random() * 100);
+      setTimeout(changeText, 100);
+    }
+    //changeText();
+  function sendLotsOfData() {
+    let data = new ArrayBuffer(1<<29);
+    worker.postMessage({type: "normally", begin: Date.now(), data: data});
+    console.log("sent normally!");
+  }
+  function sendTransferable() {
+    let data = new ArrayBuffer(1<<29);
+    console.log('data before', data);
+    worker.postMessage({type: "transferable", begin: Date.now(), data: data}, [data]);
+    console.log('data after', data);
+  }
+
+  var worker = new Worker('transferable_object.js');
+
+  worker.addEventListener('message', function(e) {
+    console.log('data: ', e.data);
+    if (e.data.type == "normally") {
+      setContent(resultNormally, e.data);
+    } else {
+      setContent(resultTransferable, e.data);
+    }
+  }, false);
+
+  function setContent(dom, data) {
+    dom.textContent = "time took: " + (Date.now() - data.begin) + "ms";
+  }
+
+</script>
+
+</body>
+</html>
